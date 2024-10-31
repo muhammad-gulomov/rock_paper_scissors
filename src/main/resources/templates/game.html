@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rock Paper Scissors - Waiting Room</title>
+  <link rel="stylesheet" href="/static/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f0f8ff;
+      color: #333;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+    }
+    .container {
+      max-width: 600px;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .player-list {
+      margin-top: 20px;
+    }
+    .player-list ul {
+      list-style: none;
+      padding: 0;
+    }
+    .player-list li {
+      background-color: #3498db;
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Rock Paper Scissors - Waiting Room</h1>
+  </header>
+
+  <section class="waiting-room">
+    <h2 th:text="${game.name}">Game Name</h2>
+    <p th:if="${!game.active}">Waiting for the game to start... Please stay on this page.</p>
+    <p th:if="${game.active}">Game is active! Redirecting...</p>
+
+    <div class="player-list" th:if="${!#lists.isEmpty(players)}">
+      <h3>Players in the Game</h3>
+      <ul>
+        <li th:each="player, iterStat : ${players}" th:text="${player.nickname}" th:id="'player-' + ${iterStat.index}">Player Name</li>
+      </ul>
+    </div>
+
+  </section>
+</div>
+
+<script th:if="${!game.active}">
+  setTimeout(() => {
+    location.reload();
+  }, 3000);
+</script>
+
+<script th:if="${game.active}">
+  window.location.href = '/start-game'
+</script>
+
+</body>
+</html>

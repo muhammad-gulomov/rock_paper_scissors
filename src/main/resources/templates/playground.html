@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rock Paper Scissors Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f8f9fa;
+            color: #333;
+            padding: 20px;
+        }
+        h1 { color: #2c3e50; margin-bottom: 20px; }
+        #round, #score, #timer { font-size: 1.2em; margin: 10px 0; color: #2c3e50; }
+        .choices {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .choice-img {
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-radius: 8px;
+            border: 2px solid transparent;
+        }
+        .choice-img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-color: #3498db;
+        }
+        .stats {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+        .stat-box {
+            text-align: center;
+            width: 100px;
+        }
+        .stat-box img {
+            width: 80px;
+            height: 80px;
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+<h1>Rock Paper Scissors - Game</h1>
+<div id="round">Round: 1</div>
+<div id="score">Score: 0</div>
+<div id="timer">Elapsed Time: 0 seconds</div>
+
+<div class="choices">
+    <img class="choice-img" src="https://toppng.com/uploads/preview/rock-paper-scissors-png-clipart-rock-paper-scissors-11563211310xieroclgnt.png"
+         alt="Rock" title="Rock" onclick="playRound('rock')">
+    <img class="choice-img" src="https://www.vhv.rs/dpng/d/490-4906131_rock-paper-scissors-clipart-rock-paper-scissors-png.png"
+         alt="Paper" title="Paper" onclick="playRound('paper')">
+    <img class="choice-img" src="https://www.seekpng.com/png/detail/111-1114370_rock-paper-scissors-rock-paper-scissors-clipart.png"
+         alt="Scissors" title="Scissors" onclick="playRound('scissors')">
+</div>
+
+<div class="stats">
+    <div class="stat-box">
+        <h3>Your Choice</h3>
+        <img id="user-choice" src="" alt="User choice">
+    </div>
+    <div class="stat-box">
+        <h3>Computer's Choice</h3>
+        <img id="computer-choice" src="" alt="Computer choice">
+    </div>
+</div>
+
+<script>
+    let currentRound = 1;
+    let currentScore = 0;
+    const maxRounds = 7;
+    let totalDuration = 0;
+    let startTime, timerInterval;
+    let elapsedSeconds = 0;
+
+    // Start timer function
+    function startTimer() {
+        startTime = new Date().getTime();
+        timerInterval = setInterval(() => {
+            elapsedSeconds++;
+            document.getElementById("timer").innerText = `Elapsed Time: ${elapsedSeconds} seconds`;
+        }, 1000);
+    }
+
+    // Stop timer function
+    function stopTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function playRound(userMove) {
+        if (currentRound === 1 && elapsedSeconds === 0) {
+            startTimer(); // Start timer on first round
+        }
+
+        if (currentRound > maxRounds) {
+            stopTimer(); // Stop timer on reaching max rounds
+            disableButtons();
+            return;
+        }
+
+        const computerMove = ["rock", "paper", "scissors"][Math.floor(Math.random() * 3)];
+        displayChoices(userMove, computerMove);
+
+        const result = getResult(userMove, computerMove);
+        if (result === 'win') currentScore++;
+
+        // Accumulate total duration and send data on last round
+        if (currentRound === maxRounds) {
+            totalDuration = elapsedSeconds;
+            sendGameStats({ score: currentScore, totalDuration, roundsPlayed: maxRounds });
+        }
+
+        currentRound++;
+    }
+
+    function getResult(userMove, computerMove) {
+        if (userMove === computerMove) return 'tie';
+        if ((userMove === "rock" && computerMove === "scissors") ||
+            (userMove === "paper" && computerMove === "rock") ||
+            (userMove === "scissors" && computerMove === "paper")) return 'win';
+        return 'loss';
+    }
+
+    function sendGameStats(gameStat) {
+        fetch('/save-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                round: currentRound,
+                score: currentScore,
+                duration: totalDuration,
+                roundsPlayed: maxRounds
+            })
+        }).then(response => {
+            response.json().then(data => {
+                if (data.redirect) {
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 2000);
+                }
+            });
+        });
+    }
+
+    function displayChoices(userMove, computerMove) {
+        const choiceImages = {
+            rock: "https://toppng.com/uploads/preview/rock-paper-scissors-png-clipart-rock-paper-scissors-11563211310xieroclgnt.png",
+            paper: "https://www.vhv.rs/dpng/d/490-4906131_rock-paper-scissors-clipart-rock-paper-scissors-png.png",
+            scissors: "https://www.seekpng.com/png/detail/111-1114370_rock-paper-scissors-rock-paper-scissors-clipart.png"
+        };
+
+        document.getElementById("user-choice").src = choiceImages[userMove];
+        document.getElementById("computer-choice").src = choiceImages[computerMove];
+
+        document.getElementById("round").innerText = `Round: ${currentRound}`;
+        document.getElementById("score").innerText = `Score: ${currentScore}`;
+    }
+
+    function disableButtons() {
+        const choiceImages = document.querySelectorAll('.choice-img');
+        choiceImages.forEach(img => {
+            img.style.pointerEvents = 'none'; // Disable clicks
+            img.style.opacity = '0.5'; // Optionally change appearance to indicate disabled state
+        });
+    }
+</script>
+</body>
+</html>

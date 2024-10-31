@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Page - Create Game</title>
+  <link rel="stylesheet" href="/static/bootstrap.min.css"> <!-- Link to Bootstrap for styling -->
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Admin - Create a New Game</h1>
+    <p>Enter a name for the new Rock Paper Scissors game and submit to add it to the list.</p>
+  </header>
+
+  <section class="create-game-form">
+    <form action="/create-game" method="post">
+      <div class="form-group">
+        <label for="gameName">Game Name</label>
+        <input type="text" id="gameName" name="gameName" class="form-control" placeholder="Enter game name" required>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Create Game</button>
+    </form>
+  </section>
+
+  <section class="game-actions">
+    <div th:if="${games != null and !games.isEmpty()}">
+      <h2>Available Games</h2>
+      <ul>
+        <!-- Display each game with a Start and Delete button -->
+        <li th:each="game : ${games}">
+          <span th:text="${game.name}">Game Name</span>
+
+          <!-- Form to start the game -->
+          <form action="/start-game" method="post" th:if="${!game.active}" th:object="${game}">
+            <input type="hidden" th:name="id" th:value="${game.id}">
+            <button type="submit" class="btn btn-success">Start Game</button>
+          </form>
+
+          <!-- Show status if already started -->
+          <span th:if="${game.active}" class="text-muted">Started</span>
+
+          <!-- Form to delete the game -->
+          <form action="/delete-game" method="post" th:object="${game}" style="display: inline;">
+            <input type="hidden" th:name="id" th:value="${game.id}">
+            <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+</body>
+</html>
